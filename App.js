@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 
 class PhotoCamera extends React.PureComponent {
   state = {
-    type: RNCamera.Constants.Type.back,
+    type: this.props.type,
   };
 
   flipCamera = () =>
@@ -80,6 +80,7 @@ class PhotoCamera extends React.PureComponent {
         </View>
         <View style={styles.bottomButtons}>
           <TouchableOpacity
+            testID="take-photo-button"
             onPress={this.takePhoto}
             style={styles.recordingButton}>
             <Icon name="camera" size={50} color="orange" />
@@ -92,6 +93,7 @@ class PhotoCamera extends React.PureComponent {
 
 PhotoCamera.defaultProps = {
   onTakePhoto: () => { },
+  type: RNCamera.Constants.Type.back,
 };
 
 export default PhotoCamera;
