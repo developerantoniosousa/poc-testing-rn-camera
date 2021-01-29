@@ -1,114 +1,97 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
 import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-const App: () => React$Node = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
-};
+import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { RNCamera } from 'react-native-camera';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: 'black',
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  preview: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
-  body: {
-    backgroundColor: Colors.white,
+  topButtons: {
+    flex: 1,
+    width: Dimensions.get('window').width,
+    alignItems: 'flex-start',
   },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  bottomButtons: {
+    flex: 1,
+    width: Dimensions.get('window').width,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
+
+  flipButton: {
+    flex: 1,
+    marginTop: 20,
+    right: 20,
+    alignSelf: 'flex-end',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
+  recordingButton: {
+    marginBottom: 10,
   },
 });
 
-export default App;
+class PhotoCamera extends React.PureComponent {
+  state = {
+    type: RNCamera.Constants.Type.back,
+  };
+
+  flipCamera = () =>
+    this.setState({
+      type:
+        this.state.type === RNCamera.Constants.Type.back
+          ? RNCamera.Constants.Type.front
+          : RNCamera.Constants.Type.back,
+    });
+
+  takePhoto = async () => {
+    const { onTakePhoto } = this.props;
+    const options = {
+      quality: 0.5,
+      base64: true,
+      width: 300,
+      height: 300,
+    };
+    const data = await this.camera.takePictureAsync(options);
+    onTakePhoto(data.base64);
+  };
+  render() {
+    const { type } = this.state;
+    return (
+      <View style={styles.container}>
+        <RNCamera
+          ref={(cam) => {
+            this.camera = cam;
+          }}
+          type={type}
+          style={styles.preview}
+        />
+        <View style={styles.topButtons}>
+          <TouchableOpacity onPress={this.flipCamera} style={styles.flipButton}>
+            <Icon name="refresh" size={35} color="orange" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity
+            onPress={this.takePhoto}
+            style={styles.recordingButton}>
+            <Icon name="camera" size={50} color="orange" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+}
+
+PhotoCamera.defaultProps = {
+  onTakePhoto: () => { },
+};
+
+export default PhotoCamera;
