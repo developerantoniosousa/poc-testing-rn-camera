@@ -1,54 +1,12 @@
-import React, { PureComponent } from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React from 'react';
+import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-
-class ExampleApp extends PureComponent {
-  render() {
-    return (
-      <View style={styles.container}>
-        <RNCamera
-          ref={(ref) => {
-            this.camera = ref;
-          }}
-          style={styles.preview}
-          type={RNCamera.Constants.Type.back}
-          flashMode={RNCamera.Constants.FlashMode.on}
-          androidCameraPermissionOptions={{
-            title: 'Permission to use camera',
-            message: 'We need your permission to use your camera',
-            buttonPositive: 'Ok',
-            buttonNegative: 'Cancel',
-          }}
-        />
-        <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
-          <TouchableOpacity
-            onPress={this.takePicture.bind(this)}
-            style={styles.capture}>
-            <Text style={{ fontSize: 14 }}> SNAP </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  takePicture = async () => {
-    if (this.camera) {
-      const options = { quality: 0.5, base64: true };
-      const data = await this.camera.takePictureAsync(options);
-      console.log(data.uri);
-    }
-  };
-}
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    display: 'flex',
     flexDirection: 'column',
     backgroundColor: 'black',
   },
@@ -57,15 +15,84 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  capture: {
-    flex: 0,
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    padding: 15,
-    paddingHorizontal: 20,
-    alignSelf: 'center',
-    margin: 20,
+  topButtons: {
+    flex: 1,
+    width: Dimensions.get('window').width,
+    alignItems: 'flex-start',
+  },
+  bottomButtons: {
+    flex: 1,
+    width: Dimensions.get('window').width,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+
+  flipButton: {
+    flex: 1,
+    marginTop: 20,
+    right: 20,
+    alignSelf: 'flex-end',
+  },
+  recordingButton: {
+    marginBottom: 10,
   },
 });
 
-export default ExampleApp;
+class PhotoCamera extends React.PureComponent {
+  state = {
+    type: RNCamera.Constants.Type.back,
+  };
+
+  flipCamera = () =>
+    this.setState({
+      type:
+        this.state.type === RNCamera.Constants.Type.back
+          ? RNCamera.Constants.Type.front
+          : RNCamera.Constants.Type.back,
+    });
+
+  takePhoto = async () => {
+    const { onTakePhoto } = this.props;
+    const options = {
+      quality: 0.5,
+      base64: true,
+      width: 300,
+      height: 300,
+    };
+    const data = await this.camera.takePictureAsync(options);
+    console.log(data.base64);
+    onTakePhoto(data.base64);
+  };
+  render() {
+    const { type } = this.state;
+    return (
+      <View style={styles.container}>
+        <RNCamera
+          ref={(cam) => {
+            this.camera = cam;
+          }}
+          type={type}
+          style={styles.preview}
+        />
+        <View style={styles.topButtons}>
+          <TouchableOpacity onPress={this.flipCamera} style={styles.flipButton}>
+            <Icon name="refresh" size={35} color="orange" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity
+            onPress={this.takePhoto}
+            style={styles.recordingButton}>
+            <Icon name="camera" size={50} color="orange" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+}
+
+PhotoCamera.defaultProps = {
+  onTakePhoto: () => { },
+};
+
+export default PhotoCamera;
